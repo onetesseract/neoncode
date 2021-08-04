@@ -36,9 +36,11 @@ impl Map {
             ret.push(i.varcount);
             ret.push(i.consts.len() as u8);
             for i in &i.consts {
+                
                 for n in 0..8 {
-                    ret.push(consts.len().to_le_bytes()[n])
+                    ret.push(consts.len().to_le_bytes()[n]); // append the index of the constant referenced
                 }
+                
                 consts.push(*i);
             }
         }

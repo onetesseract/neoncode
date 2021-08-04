@@ -30,7 +30,8 @@ mod tests {
     use crate::Value;
     use crate::builder::Block;
     use crate::builder::Builder;
-    use crate::instruction::IAdd;
+    use crate::instruction::U8Add;
+    use crate::instruction::U8Sub;
     use crate::instruction::ReturnVal;
     use crate::mapper::Function;
     use crate::mapper::Frame;
@@ -45,7 +46,7 @@ mod tests {
     }
     #[test]
     fn return_isub() {
-        let sub = IAdd { add_to: Value::from(0), add_by: Value::from(1), ret: Value::from(2)};
+        let sub = U8Add { add_to: Value::from(0), add_by: Value::from(1), ret: Value::from(2)};
         let v = ReturnVal {val: Value::from(0)};
         let r = v.as_instruction();
         println!("{:?}", sub.as_instruction().render());
@@ -82,10 +83,13 @@ mod tests {
         let mut builder = Builder {blocks: vec![], functions: vec![]};
         let mut b = Block::new(format!("hello"));
         // builder.blocks.push(b.clone());
-        b.cont.push(IAdd {add_to: 0.into_value(), add_by: 1.into_value(), ret: 2.into_value()}.as_instruction());
+        b.cont.push(U8Add {add_to: 0.into_value(), add_by: 1.into_value(), ret: 3.into_value()}.as_instruction());
+        b.cont.push(U8Add {add_to: 3.into_value(), add_by: 1.into_value(), ret: 3.into_value()}.as_instruction());
+        b.cont.push(U8Sub {sub_from: 3.into_value(), sub_by: 2.into_value(), ret: 4.into_value()}.as_instruction());
         b.consts.push(18);
         b.consts.push(10);
-        b.varcount = 1;
+        b.consts.push(20);
+        b.varcount = 2;
         builder.blocks.push(b);
 
         let f  = Function {argc: 0, frame_index: 0};
