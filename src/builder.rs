@@ -2,24 +2,27 @@ use crate::{instruction::{Instruction}, mapper::{Frame, Function, Map}, types::T
 
 pub struct Builder {
     pub blocks: Vec<Block>,
-    pub protos: Vec<Prototype>,
+    pub functions: Vec<Function>,
 }
 
+/*
 pub struct Prototype {
     pub name: String,
     pub argc: u8,
     pub frame_index: u8,
 }
-
+*/
+#[derive(Clone)]
 pub struct Block {
     pub name: String,
     pub cont: Vec<Instruction>,
     pub varcount: usize,
+    pub consts: Vec<u8>,
 }
 
 impl Block {
     pub fn new(name: String) -> Block {
-        Block{name, cont: vec![], varcount: 0}
+        Block{name, cont: vec![], varcount: 0, consts: vec![]}
     }
     pub fn render(&self) -> Vec<u8> {
         let mut ret = vec![];
@@ -39,23 +42,33 @@ impl Builder {
             indicies.push((rendered.len(), i.varcount));
             ret.append(&mut rendered);
         }
+        println!("indicies: {:?}", indicies);
         let mut m = Map {frames: vec![], functions: vec![]};
         let mut running_total: usize = 0;
+        let mut tracker = 0;
         for (len, varcount) in indicies {
-            let f = Frame {start_ptr: (running_total+len) as u64, varcount: varcount as u8};
+            let f = Frame {start_ptr: (running_total+len) as u64, varcount: varcount as u8, consts: self.blocks[tracker].consts.clone()};
             running_total+=len;
             m.frames.push(f);
+            tracker+=1;
         }
-        for i in &self.protos {
-            let fun = Function {argc: i.argc, frame_index: i.frame_index};
-            m.functions.push(fun);
+        for i in &self.functions {
+            // let fun = Function {argc: i.argc, frame_index: i.frame_index};
+            m.functions.push(i.clone());
         }
-        let mut rendered_map = m.render();
+        let (mut rendered_map, mut data_sect) = m.render();
         let map_len = rendered_map.len() as u64;
+        let mut r = Vec::from(map_len.to_le_bytes());
+        println!("ret: {:?}", ret);
+        println!("r: {:?}", r);
+        println!("rend: {:?}", rendered_map);
+        rendered_map.append(&mut Vec::from((data_sect.len() as u64).to_le_bytes()));
+        rendered_map.append(&mut data_sect);
         rendered_map.append(&mut ret);
-        ret = rendered_map;
+        r.append(&mut rendered_map);
+        ret = r;
         for n in 8..0 {
-            ret.insert(0, map_len.to_be_bytes()[n])
+            ret.insert(0, map_len.to_le_bytes()[n])
         }
         ret
 

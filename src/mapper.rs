@@ -14,10 +14,13 @@ pub struct Function {
 pub struct Frame {
     pub start_ptr: u64,
     pub varcount: u8,
+    // pub constcount: u8,
+    pub consts: Vec<u8>,
 }
 
 impl Map {
-    pub fn render(&self) -> Vec<u8> {
+    pub fn render(&self) -> (Vec<u8>, Vec<u8>) {
+        let mut consts = vec![];
         let mut ret: Vec<u8> = vec![];
         ret.push(self.functions.len() as u8);
         ret.push(self.frames.len() as u8);
@@ -28,14 +31,22 @@ impl Map {
         for i in &self.frames {
             // oh man this sucks
             for n in 0..8 {
-                ret.push(i.start_ptr.to_be_bytes()[n])
+                ret.push(i.start_ptr.to_le_bytes()[n])
             }
             ret.push(i.varcount);
+            ret.push(i.consts.len() as u8);
+            for i in &i.consts {
+                for n in 0..8 {
+                    ret.push(consts.len().to_le_bytes()[n])
+                }
+                consts.push(*i);
+            }
         }
-        return ret;
+        // ret.append(&mut consts);
+        return (ret, consts);
         
     }
-
+    /*
     pub fn from(v: Vec<u8>) -> Map {
         let mut ret = Map { functions: vec![], frames: vec![] };
         let mut idx: usize = 0;
@@ -53,12 +64,13 @@ impl Map {
                 build_arr[i] = v[idx+i];
             }
             idx += 8;
-            let ptr = u64::from_be_bytes(build_arr);
+            let ptr = u64::from_le_bytes(build_arr);
+
             let f = Frame { start_ptr: ptr, varcount: v[idx] };
             idx += 1;
             ret.frames.push(f)
         }
         
         return ret;
-    }
+    }*/
 }
