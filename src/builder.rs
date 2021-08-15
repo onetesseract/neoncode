@@ -1,4 +1,4 @@
-use crate::{instruction::{Instruction}, mapper::{Frame, Function, Map, Variables}, types::Type};
+use crate::{instruction::{Instruction}, mapper::{Function, Variables}, neon::crate_path::binary_encoding::{frame_map, frame_mapArgs, function_map, function_mapArgs, get_root_as_map, map, mapArgs, root_as_map, variables_type, variables_typeArgs}, types::Type};
 
 pub struct Builder {
     pub blocks: Vec<Block>,
@@ -45,6 +45,75 @@ impl Block {
 
 impl Builder {
     pub fn render(mut self) -> Vec<u8> {
+        let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(1024);
+        let mut instructions = vec![];
+
+        
+
+        let mut blocks = vec![];
+        for i in &mut self.blocks {
+            println!("Vs: {:?}", i.variables.sizes);
+            let variable_indexes = Some(builder.create_vector(&i.variables.sizes));
+            println!("vec size: {}", i.variables.sizes.len());
+            let const_indexes = Some(builder.create_vector(&i.const_indexes));
+            let variables = Some(variables_type::create(&mut builder, &variables_typeArgs {
+                indexes: variable_indexes,
+            }));
+            let block = frame_map::create(&mut builder, &frame_mapArgs {
+                start_index: instructions.len() as u64,
+                
+                variables,
+                constant_indexes: const_indexes,
+            });
+            instructions.append(&mut i.render());
+            blocks.push(block);
+        }
+
+        let frames = builder.create_vector(&blocks);
+
+        let mut functions = vec![];
+
+        println!("Functions len: {}", self.functions.len());
+        println!("Frames/Blocks len: {}", self.blocks.len());
+
+        for i in self.functions {
+            let variable_indexes = Some(builder.create_vector(&i.arguments.sizes));
+            println!("vec size: {}", i.arguments.sizes.len());
+            let variables = Some(variables_type::create(&mut builder, &variables_typeArgs {
+                indexes: variable_indexes,
+            }));
+            let function = function_map::create(&mut builder, &function_mapArgs {
+                variables,
+                entry_frame_index: i.frame_index as u64,
+            });
+            functions.push(function);
+        }
+
+        let functions = builder.create_vector(&functions);
+
+        println!("self.consts: {:?}", self.consts);
+
+        let data = builder.create_vector(&self.consts);
+        let data_indexes = builder.create_vector(&self.consts_shape.sizes);
+        let data_shape = Some(variables_type::create(&mut builder, &variables_typeArgs {
+            indexes: Some(data_indexes),
+        }));
+
+        let map = map::create(&mut builder, &mapArgs {
+            frames: Some(frames),
+            functions: Some(functions),
+            data: Some(data),
+            data_shape,
+        });
+        builder.finish(map, None);
+        let mut finished = builder.finished_data().to_vec();
+        println!("Finished: {:?}", finished);
+        let mut ret = Vec::from((finished.len() as u64).to_le_bytes());
+        ret.append(&mut finished.clone());
+        ret.append(&mut instructions);
+        ret
+
+        /*
         let mut ret = vec![];
         let mut indicies = vec![];
         let mut const_sizes = vec![];
@@ -84,13 +153,14 @@ impl Builder {
             ret.insert(0, map_len.to_le_bytes()[n])
         }
         ret
-
+        */
     }
 
     pub fn add_const(&mut self, constant: Vec<u8>) -> Constant {
         let index = self.consts_shape.sizes.len();
         let size = constant.len();
         self.consts_shape.sizes.push(size as u64);
+        self.consts.append(&mut constant.clone());
         Constant {index: index as u64}
     }
 }

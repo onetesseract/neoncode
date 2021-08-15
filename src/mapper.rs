@@ -9,7 +9,7 @@ pub struct Variables {
     pub sizes: Vec<u64>,
 }
 
-impl Variables {
+impl<'a> Variables {
     pub fn render(&self) -> Vec<u8> {
         let mut ret = vec![];
         for n in 0..8 {

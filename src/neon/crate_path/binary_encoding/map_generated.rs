@@ -29,7 +29,6 @@ impl<'a> map<'a> {
         _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
         args: &'args mapArgs<'args>) -> flatbuffers::WIPOffset<map<'bldr>> {
       let mut builder = mapBuilder::new(_fbb);
-      builder.add_map_len(args.map_len);
       if let Some(x) = args.data_shape { builder.add_data_shape(x); }
       if let Some(x) = args.data { builder.add_data(x); }
       if let Some(x) = args.frames { builder.add_frames(x); }
@@ -39,9 +38,8 @@ impl<'a> map<'a> {
 
     pub const VT_FUNCTIONS: flatbuffers::VOffsetT = 4;
     pub const VT_FRAMES: flatbuffers::VOffsetT = 6;
-    pub const VT_MAP_LEN: flatbuffers::VOffsetT = 8;
-    pub const VT_DATA: flatbuffers::VOffsetT = 10;
-    pub const VT_DATA_SHAPE: flatbuffers::VOffsetT = 12;
+    pub const VT_DATA: flatbuffers::VOffsetT = 8;
+    pub const VT_DATA_SHAPE: flatbuffers::VOffsetT = 10;
 
   #[inline]
   pub fn functions(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<function_map<'a>>>> {
@@ -50,10 +48,6 @@ impl<'a> map<'a> {
   #[inline]
   pub fn frames(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<frame_map<'a>>>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<frame_map>>>>(map::VT_FRAMES, None)
-  }
-  #[inline]
-  pub fn map_len(&self) -> u64 {
-    self._tab.get::<u64>(map::VT_MAP_LEN, Some(0)).unwrap()
   }
   #[inline]
   pub fn data(&self) -> Option<&'a [u8]> {
@@ -74,7 +68,6 @@ impl flatbuffers::Verifiable for map<'_> {
     v.visit_table(pos)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<function_map>>>>("functions", Self::VT_FUNCTIONS, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<frame_map>>>>("frames", Self::VT_FRAMES, false)?
-     .visit_field::<u64>("map_len", Self::VT_MAP_LEN, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("data", Self::VT_DATA, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<variables_type>>("data_shape", Self::VT_DATA_SHAPE, false)?
      .finish();
@@ -84,7 +77,6 @@ impl flatbuffers::Verifiable for map<'_> {
 pub struct mapArgs<'a> {
     pub functions: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<function_map<'a>>>>>,
     pub frames: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<frame_map<'a>>>>>,
-    pub map_len: u64,
     pub data: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
     pub data_shape: Option<flatbuffers::WIPOffset<variables_type<'a>>>,
 }
@@ -94,7 +86,6 @@ impl<'a> Default for mapArgs<'a> {
         mapArgs {
             functions: None,
             frames: None,
-            map_len: 0,
             data: None,
             data_shape: None,
         }
@@ -112,10 +103,6 @@ impl<'a: 'b, 'b> mapBuilder<'a, 'b> {
   #[inline]
   pub fn add_frames(&mut self, frames: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<frame_map<'b >>>>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(map::VT_FRAMES, frames);
-  }
-  #[inline]
-  pub fn add_map_len(&mut self, map_len: u64) {
-    self.fbb_.push_slot::<u64>(map::VT_MAP_LEN, map_len, 0);
   }
   #[inline]
   pub fn add_data(&mut self, data: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u8>>) {
@@ -145,7 +132,6 @@ impl std::fmt::Debug for map<'_> {
     let mut ds = f.debug_struct("map");
       ds.field("functions", &self.functions());
       ds.field("frames", &self.frames());
-      ds.field("map_len", &self.map_len());
       ds.field("data", &self.data());
       ds.field("data_shape", &self.data_shape());
       ds.finish()

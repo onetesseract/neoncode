@@ -37,8 +37,6 @@ mod tests {
     use crate::instruction::U8Sub;
     use crate::instruction::ReturnVal;
     use crate::mapper::Function;
-    use crate::mapper::Frame;
-    use crate::mapper::Map;
     use crate::IntoValue;
     use crate::mapper::Variables;
     use std::fs;
@@ -95,7 +93,7 @@ mod tests {
         b.cont.push(U8Sub {sub_from: 3.into_value(), sub_by: 2.into_value(), ret: 4.into_value()}.as_instruction());
         let c = builder.add_const(vec![18]);
         let _c = builder.add_const(vec![10]);
-        let __c = builder.add_const(vec![10]);
+        let __c = builder.add_const(vec![20]);
         b.const_indexes.push(c.index);
         b.const_indexes.push(_c.index);
         b.const_indexes.push(__c.index);
@@ -103,8 +101,10 @@ mod tests {
         b.add_variable(8);
         builder.blocks.push(b);
 
-        let f  = Function {arguments: Variables::new(), frame_index: 0};
-        builder.functions.push(f);
+        let mut args = Variables::new();
+
+        let f  = Function {arguments: args, frame_index: 0};
+        builder.functions.push(f); 
         let v = builder.render();
         println!("{:?}", v);
         let path = path::Path::new("prog.neonbin");

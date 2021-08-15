@@ -29,18 +29,12 @@ impl<'a> variables_type<'a> {
         _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
         args: &'args variables_typeArgs<'args>) -> flatbuffers::WIPOffset<variables_type<'bldr>> {
       let mut builder = variables_typeBuilder::new(_fbb);
-      builder.add_index_len(args.index_len);
       if let Some(x) = args.indexes { builder.add_indexes(x); }
       builder.finish()
     }
 
-    pub const VT_INDEX_LEN: flatbuffers::VOffsetT = 4;
-    pub const VT_INDEXES: flatbuffers::VOffsetT = 6;
+    pub const VT_INDEXES: flatbuffers::VOffsetT = 4;
 
-  #[inline]
-  pub fn index_len(&self) -> u64 {
-    self._tab.get::<u64>(variables_type::VT_INDEX_LEN, Some(0)).unwrap()
-  }
   #[inline]
   pub fn indexes(&self) -> Option<flatbuffers::Vector<'a, u64>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u64>>>(variables_type::VT_INDEXES, None)
@@ -54,21 +48,18 @@ impl flatbuffers::Verifiable for variables_type<'_> {
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
-     .visit_field::<u64>("index_len", Self::VT_INDEX_LEN, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u64>>>("indexes", Self::VT_INDEXES, false)?
      .finish();
     Ok(())
   }
 }
 pub struct variables_typeArgs<'a> {
-    pub index_len: u64,
     pub indexes: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u64>>>,
 }
 impl<'a> Default for variables_typeArgs<'a> {
     #[inline]
     fn default() -> Self {
         variables_typeArgs {
-            index_len: 0,
             indexes: None,
         }
     }
@@ -78,10 +69,6 @@ pub struct variables_typeBuilder<'a: 'b, 'b> {
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
 impl<'a: 'b, 'b> variables_typeBuilder<'a, 'b> {
-  #[inline]
-  pub fn add_index_len(&mut self, index_len: u64) {
-    self.fbb_.push_slot::<u64>(variables_type::VT_INDEX_LEN, index_len, 0);
-  }
   #[inline]
   pub fn add_indexes(&mut self, indexes: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u64>>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(variables_type::VT_INDEXES, indexes);
@@ -104,7 +91,6 @@ impl<'a: 'b, 'b> variables_typeBuilder<'a, 'b> {
 impl std::fmt::Debug for variables_type<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     let mut ds = f.debug_struct("variables_type");
-      ds.field("index_len", &self.index_len());
       ds.field("indexes", &self.indexes());
       ds.finish()
   }

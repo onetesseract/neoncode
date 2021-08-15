@@ -1,7 +1,6 @@
 namespace Neon.BinaryEncoding;
 
 table variables_type {
-    index_len:uint64;
     indexes:[uint64];
 }
 
@@ -19,7 +18,6 @@ table function_map {
 table map {
     functions:[function_map];
     frames:[frame_map];
-    map_len:uint64;
     data:[ubyte];
     data_shape:variables_type;
 }
