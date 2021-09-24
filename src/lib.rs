@@ -31,8 +31,9 @@ impl IntoValue for u8 {
 #[cfg(test)]
 mod tests {
     use crate::Value;
-    use crate::builder::Block;
-    use crate::builder::Builder;
+    use crate::builder::builder::Builder;
+    use crate::builder::rawbuilder::Block;
+    use crate::builder::rawbuilder::RawBuilder;
     use crate::instruction::U8Add;
     use crate::instruction::U8Sub;
     use crate::instruction::ReturnVal;
@@ -85,7 +86,7 @@ mod tests {
 
     #[test]
     fn file_test() {
-        let mut builder = Builder {blocks: vec![], functions: vec![], consts_shape: Variables::new(), consts: vec![]};
+        let mut builder = RawBuilder {blocks: vec![], functions: vec![], consts_shape: Variables::new(), consts: vec![]};
         let mut b = Block::new(format!("hello"));
         // builder.blocks.push(b.clone());
         b.cont.push(U8Add {add_to: 0.into_value(), add_by: 1.into_value(), ret: 3.into_value()}.as_instruction());
@@ -109,5 +110,12 @@ mod tests {
         println!("{:?}", v);
         let path = path::Path::new("prog.neonbin");
         fs::write(path, v).unwrap();
+    }
+
+
+    #[test]
+    fn new_test() {
+        let mut builder = Builder::new();
+        let a = builder.add_function();
     }
 }
